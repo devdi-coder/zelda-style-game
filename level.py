@@ -29,11 +29,11 @@ class Level:
             'object': load_csv(base_path + 'map_LargeObjects.csv')
         }
 
-        # Caminho para as pastas 'Grass' e 'LargeObjects'
+
         grass_path = os.path.join(os.path.dirname(__file__), 'graphics', 'Grass')
         large_objects_path = os.path.join(os.path.dirname(__file__), 'graphics', 'Objects')
 
-# Importando os gráficos
+
         graphics = {
             'grass': import_folder(grass_path),
             'objects': import_folder(large_objects_path)
@@ -65,6 +65,7 @@ class Level:
         
         self.visible_sprites.custom_draw(self.player)
         self.visible_sprites.update()
+        debug(self.player.status)
 
 class YSortCameraGroup(pygame.sprite.Group):
     def __init__(self):
