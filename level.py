@@ -1,3 +1,4 @@
+# pyright: reportMissingImports=false
 import pygame
 from settings import *
 from tile import Tile
@@ -9,6 +10,7 @@ from pathlib import Path
 from random import choice
 from weapon import Weapon
 from ui import UI
+from enemy import Enemy
 
 
 
@@ -30,17 +32,20 @@ class Level:
             with open(file_path, mode='r', newline='', encoding='utf-8') as csvfile:
                 return [row for row in csv.reader(csvfile)]
 
-        base_path = 'E:/piton/zelda-style/graphics/map/'  
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        MAP_DIR = os.path.join(BASE_DIR, 'graphics', 'map')
+
         layouts = {
-            'boundary': load_csv(base_path + 'map_floorBlocks.csv'),
-            'grass': load_csv(base_path + 'map_Grass.csv'),
-            'object': load_csv(base_path + 'map_LargeObjects.csv')
+            'boundary': load_csv(os.path.join(MAP_DIR, 'map_floorBlocks.csv')),
+            'grass': load_csv(os.path.join(MAP_DIR, 'map_Grass.csv')),
+            'object': load_csv(os.path.join(MAP_DIR, 'map_LargeObjects.csv')),
+            'entity': load_csv(os.path.join(MAP_DIR, 'map_Entities.csv')),
         }
 
 
         grass_path = os.path.join(os.path.dirname(__file__), 'graphics', 'Grass')
         large_objects_path = os.path.join(os.path.dirname(__file__), 'graphics', 'Objects')
-
+        large_objects_path = os.path.join(os.path.dirname(__file__), 'graphics', 'Objects')
 
         graphics = {
             'grass': import_folder(grass_path),
@@ -63,12 +68,22 @@ class Level:
                         if style == 'object':
                             surf = graphics['objects'][int(col)]
                             Tile((x,y),[self.visible_sprites, self.obstacle_sprites], 'object',surf)
-                                
-                    
-        self.player = Player(
-            (1200, 1200), [self.visible_sprites], self.obstacle_sprites,
-              self.create_attack, self.destroy_attack,self.create_magic
-              )
+
+                        if style == 'entity':
+                            if col == '394':
+                                self.player = Player(
+                                    (x,y), [self.visible_sprites],
+                                      self.obstacle_sprites, self.create_attack, 
+                                      self.destroy_attack,self.create_magic
+                                      )
+                            else:
+                                if col == '390': monster_name = 'bamboo'
+                                elif col == '391': monster_name = 'spirit'
+                                elif col == '392': monster_name = 'raccoon'
+                                else: monster_name = 'squid'
+
+                                Enemy(monster_name,(x,y),[self.visible_sprites], self.obstacle_sprites)
+                
 
     def create_attack(self):
         self.current_attack = Weapon(self.player,[self.visible_sprites]) 
@@ -85,6 +100,7 @@ class Level:
         
         self.visible_sprites.custom_draw(self.player)
         self.visible_sprites.update()
+        self.visible_sprites.enemy_update(self.player)
         self.ui.display(self.player)
 
 class YSortCameraGroup(pygame.sprite.Group):
@@ -110,3 +126,10 @@ class YSortCameraGroup(pygame.sprite.Group):
         for sprite in sorted(self.sprites(),key = lambda sprite: sprite.rect.centery):
             offset_pos = sprite.rect.topleft - self.offset
             self.display_surface.blit(sprite.image,offset_pos)
+
+    def enemy_update(self,player):
+        enemy_sprites = [sprite for sprite in self.sprites()
+                        if hasattr(sprite,'sprite_type') and
+                        sprite.sprite_type == 'enemy']
+        for enemy in enemy_sprites:
+            enemy.enemy_update(player)

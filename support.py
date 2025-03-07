@@ -1,3 +1,4 @@
+# pyright: reportMissingImports=false
 import os
 from os import walk
 from csv import reader

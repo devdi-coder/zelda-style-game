@@ -1,3 +1,4 @@
+# pyright: reportMissingImports=false
 import pygame
 from settings import *
 
