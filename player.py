@@ -3,7 +3,7 @@ import pygame
 from settings import *
 import os
 from support import import_folder
-from entity import *
+from entity import Entity
 
 
 class Player(Entity):
@@ -50,6 +50,10 @@ class Player(Entity):
         self.energy = self.stats['energy'] * 0.8
         self.exp = 123
         self.speed = self.stats['speed']
+
+        self.vulnerable = True
+        self.hurt_time = None
+        self.invulnerability_duration = 500
 
     def import_player_assets(self):
         character_path = os.path.join(os.path.dirname(__file__), 'graphics', 'player')
@@ -147,7 +151,7 @@ class Player(Entity):
         current_time = pygame.time.get_ticks()
 
         if self.attacking:
-            if current_time - self.attack_time >= self.attack_cooldown:
+            if current_time - self.attack_time >= self.attack_cooldown + weapon_data[self.weapon]['cooldown']:
                 self.attacking = False
                 self.destroy_attack()
             
@@ -159,6 +163,10 @@ class Player(Entity):
             if current_time - self.magic_switch_time >= self.switch_duration_cooldown:
                 self.can_switch_magic = True
 
+        if not self.vulnerable:
+            if current_time - self.hurt_time >= self.invulnerability_duration:
+                self.vulnerable = True
+
     def animate(self):
         animation = self.animations[self.status]
         self.frame_index += self.animation_speed
@@ -168,6 +176,19 @@ class Player(Entity):
 
         self.image = animation[int(self.frame_index)]
         self.rect = self.image.get_rect(center = self.hitbox.center)
+
+        if not self.vulnerable:
+            alpha = self.wave_value()
+            self.image.set_alpha(alpha)
+        else:
+            self.image.set_alpha(255)
+
+
+    def get_weapon_dmg(self):
+        base_dmg = self.stats['attack']
+        weapon_dmg = weapon_data[self.weapon]['damage']
+
+        return base_dmg + weapon_dmg
 
     def update(self):
         self.input()
