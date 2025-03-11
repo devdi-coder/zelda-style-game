@@ -183,12 +183,22 @@ class Player(Entity):
         else:
             self.image.set_alpha(255)
 
-
     def get_weapon_dmg(self):
         base_dmg = self.stats['attack']
         weapon_dmg = weapon_data[self.weapon]['damage']
 
         return base_dmg + weapon_dmg
+
+    def get_full_magic_dmg(self):
+        base_dmg = self.stats['magic']
+        spell_dmg = magic_data[self.magic]['strength']
+        return base_dmg + spell_dmg
+
+    def energy_recovery(self):
+        if self.energy < self.stats['energy']:
+            self.energy += 0.01 * self.stats['magic']
+        else:
+            self.energy = self.stats['energy']
 
     def update(self):
         self.input()
@@ -196,3 +206,4 @@ class Player(Entity):
         self.get_status()
         self.animate()
         self.move(self.speed)
+        self.energy_recovery()

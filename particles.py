@@ -75,6 +75,7 @@ class Particles(pygame.sprite.Sprite):
         self.image = self.frames[self.frame_index] 
         self.rect = self.image.get_rect(center = pos)
 
+        self.sprite_type = "magic"
 
 
     def animate(self):

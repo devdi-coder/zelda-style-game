@@ -19,7 +19,7 @@ def import_csv_layout(path):
 def import_folder(path):
     surface_list = []
 
-    # Verificar se o caminho é válido
+
     if not os.path.isdir(path):
         print(f"Erro: O diretório '{path}' não existe!")
         return []
@@ -33,10 +33,10 @@ def import_folder(path):
             except Exception as e:
                 print(f"Erro ao carregar {full_path}: {e}")
 
-    # Se a lista estiver vazia, retorne uma lista com uma superfície vazia (ou uma imagem padrão)
+
     if not surface_list:
         print(f"Erro: Nenhuma imagem foi carregada de {path}")
-        surface_list.append(pygame.Surface((10, 10)))  # Uma superfície padrão pequena, para evitar erros
+        surface_list.append(pygame.Surface((10, 10)))  
 
     return surface_list
 
