@@ -3,7 +3,14 @@ import os
 WIDTH = 1280
 HEIGHT = 720 
 FPS = 60  
-TILESIZE = 64 
+TILESIZE = 64
+
+HITBOX_OFFSET = {
+    'player': -26,
+    'object': -40,
+    'grass': -10,
+    'invisible': 0,
+}
 
 BAR_HEIGHT = 20
 HEALTH_BAR_WIDTH = 200
@@ -23,6 +30,11 @@ TEXT_COLOR = '#EEEEEE'
 HEALTH_COLOR = 'red'
 ENERGY_COLOR = 'green'
 UI_BORDER_COLOR_ACTIVE = 'white'
+
+TEXT_COLOR_SELECTED = '#111111'
+BAR_COLOR = '#EEEEEE'
+BAR_COLOR_SELECTED = '#111111'
+UPGRADE_BG_COLOR_SELECTED = '#EEEEEE'
 
 weapon_data = {
     'sword': {'cooldown': 100, 'damage': 15, 'graphic': os.path.join(BASE_DIR, 'graphics', 'weapons', 'sword', 'full.png')},

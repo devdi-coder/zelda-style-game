@@ -3,7 +3,6 @@ import pygame
 from settings import *
 from tile import Tile
 from player import Player
-from debug import debug
 from support import *
 import csv
 from pathlib import Path
@@ -13,11 +12,13 @@ from ui import UI
 from enemy import Enemy
 from particles import AnimationPlayer
 from magic import MagicPlayer
+from upgrade import Upgrade
 
 
 class Level:
     def __init__(self):
         self.display_surface = pygame.display.get_surface()
+        self.game_paused = False
 
         self.visible_sprites = YSortCameraGroup()
         self.obstacle_sprites = pygame.sprite.Group()
@@ -29,6 +30,7 @@ class Level:
         self.create_map()
 
         self.ui = UI()
+        self.upgrade = Upgrade(self.player)
 
         self.animation_player = AnimationPlayer()
         self.magic_player = MagicPlayer(self.animation_player)
@@ -50,9 +52,8 @@ class Level:
         }
 
 
-        grass_path = os.path.join(os.path.dirname(__file__), 'graphics', 'Grass')
-        large_objects_path = os.path.join(os.path.dirname(__file__), 'graphics', 'Objects')
-        large_objects_path = os.path.join(os.path.dirname(__file__), 'graphics', 'Objects')
+        grass_path = os.path.join(BASE_DIR, 'graphics', 'Grass')
+        large_objects_path = os.path.join(BASE_DIR, 'graphics', 'Objects')
 
         graphics = {
             'grass': import_folder(grass_path),
@@ -90,7 +91,8 @@ class Level:
                                 else: monster_name = 'squid'
 
                                 Enemy(monster_name,(x,y),[self.visible_sprites, self.attacka_sprites],
-                                         self.obstacle_sprites, self.dmg_player,self.trigger_death_particles)
+                                         self.obstacle_sprites, self.dmg_player,
+                                         self.trigger_death_particles,self.xp)
                 
 
     def create_attack(self):
@@ -134,25 +136,52 @@ class Level:
     def trigger_death_particles(self,pos,particle_type):
         self.animation_player.create_particles(particle_type,pos,self.visible_sprites)
 
+    def xp(self,amount):
+        self.player.exp += amount
+
+    def toggle_menu(self):
+        self.game_paused = not self.game_paused
+
     def run(self):
-        
         self.visible_sprites.custom_draw(self.player)
-        self.visible_sprites.update()
-        self.visible_sprites.enemy_update(self.player)
-        self.player_attack_logic()
         self.ui.display(self.player)
+
+        if self.game_paused:
+            self.upgrade.display()
+
+        else:
+            self.visible_sprites.update()
+            self.visible_sprites.enemy_update(self.player)
+            self.player_attack_logic()
 
 class YSortCameraGroup(pygame.sprite.Group):
     def __init__(self):
-
         super().__init__()
+
+        # Pega a superfície de exibição
         self.display_surface = pygame.display.get_surface()
+
+        # Obtém a largura e altura da tela
         self.half_width = self.display_surface.get_size()[0] // 2
         self.half_height = self.display_surface.get_size()[1] // 2
+
+        # Define o deslocamento da câmera
         self.offset = pygame.math.Vector2()
 
-        self.floor_surf = pygame.image.load('graphics/sprites/floor.png').convert()
-        self.floor_rect = self.floor_surf.get_rect(topleft= (0,0))
+        # Verifica se o código está sendo executado a partir do executável
+        if getattr(sys, 'frozen', False):
+            # Quando o código está "congelado" (executável)
+            base_path = sys._MEIPASS
+        else:
+            # Quando está sendo executado no modo de desenvolvimento
+            base_path = os.path.dirname(os.path.abspath(__file__))
+
+        # Caminho correto para o arquivo, considerando o local do código
+        floor_image_path = os.path.join(base_path, 'graphics', 'sprites', 'floor.png')
+
+        # Carrega a imagem do chão
+        self.floor_surf = pygame.image.load(floor_image_path).convert()
+        self.floor_rect = self.floor_surf.get_rect(topleft=(0, 0))
 
     def custom_draw(self, player):
         
